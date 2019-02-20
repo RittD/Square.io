@@ -1,0 +1,2 @@
+configurations.maybeCreate("default")
+artifacts.add("default", file('easyandroidanimationslibrary-v0.5.jar'))
