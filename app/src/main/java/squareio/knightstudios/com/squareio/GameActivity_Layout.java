@@ -144,7 +144,7 @@ public class GameActivity_Layout extends SurfaceView implements Runnable {
         delta_t =0;
 
 
-        //TODO fix problem with delta t
+        //TODO fix problem with delta t  + nothing important
         while(canDraw){
 
             update();
