@@ -3,10 +3,17 @@ package squareio.knightstudios.com.squareio;
 
 
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.util.DisplayMetrics;
 import android.view.MotionEvent;
+import android.view.View;
 import android.view.WindowManager;
+
+import com.easyandroidanimations.library.RotationAnimation;
+
+import java.util.LinkedList;
+import java.util.Queue;
 //import android.os.Handler;
 //
 //import android.view.MotionEvent;
@@ -43,23 +50,18 @@ public class GameActivity extends AppCompatActivity {
 //    StripeMovement stripeMovement;
 //
 //    //Menu
-//    ImageView pause;
+//    ImageView pause_button;
 //    boolean paused = false;
-//
-//
-//    //Screen
-//    public RelativeLayout all;
-//    static int screenWidth;
-//
-//
-//    //Square
-//    static final int ROTATION_TIME = 80;
+
+    //Square
+    static final int ROTATION_TIME = 80;
 //    static int squareWidth;
 //    public ImageView square;
-//    int currentPosition = 0;
-//    boolean rotating = false;
-//    Queue<Boolean> futureRotations = new LinkedList<>();
-//    int maxFutureRotations = 10;
+    int currentPosition = 0;
+    boolean rotating = false;
+    Queue<Boolean> futureRotations = new LinkedList<>();
+    int maxFutureRotations = 10;
+
 
 
     @Override
@@ -73,6 +75,7 @@ public class GameActivity extends AppCompatActivity {
 
         gameActivityLayoutView = new GameActivity_Layout(this);
         setContentView(gameActivityLayoutView);
+
 //        setContentView(R.layout.activity_game);
 //
 //        //set fullscreen
@@ -84,12 +87,12 @@ public class GameActivity extends AppCompatActivity {
 //        stripeMovement = new StripeMovement(this);
 //        stripeMovement.start();
 //        new Handler().postDelayed(()-> stripeMovement.onPause(), 5000);
-//        new Handler().postDelayed(()->stripeMovement.stripeAnimators.get(stripeMovement.stripeAnimators.size()-1).pause(),7000);
+//        new Handler().postDelayed(()->stripeMovement.stripeAnimators.get(stripeMovement.stripeAnimators.size()-1).pause_button(),7000);
 
 //        sleep(2000);
 //            startNewStripe();
 //
-//            //TODO understand multithreading (fix pause/resume problem)
+//            //TODO understand multithreading (fix pause_button/resume problem)
 //            synchronized (pauseLock) {
 //                while (paused) {
 //                    try {
@@ -118,9 +121,9 @@ public class GameActivity extends AppCompatActivity {
 //        scoreboard = findViewById(R.id.scoreboard);
 //        score = Integer.parseInt(scoreboard.getText().toString());
 //
-//        //get pause button and enable pausing/resuming the game
-//        pause = findViewById(R.id.pause);
-//        pause.setOnClickListener((view) -> {
+//        //get pause_button button and enable pausing/resuming the game
+//        pause_button = findViewById(R.id.pause_button);
+//        pause_button.setOnClickListener((view) -> {
 //            if (paused){
 //                paused = false;
 ////                resumeStripes();
@@ -133,27 +136,49 @@ public class GameActivity extends AppCompatActivity {
 //    }
 //
 //
-//    /**
-//     * Provides the rotation of the square clockwise or anti-clickwise when clicking on the left
-//     * or the right half of the screen.
-//     * @param event the motion event that occured, only interesting if it is a click
-//     * @return whatever
-//     */
+    /**
+     * When clicking on the pause_button button, the game should pause_button.
+     * Otherwise provides the 90°-rotation of the square clockwise (anti-clockwise)
+     * when clicking on the right (left) half of the screen.
+     * @param event the motion event that occurred, only interesting if it is a click
+     * @return whether it was correctly executed??
+     */
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-
         if(event.getAction() == MotionEvent.ACTION_DOWN) {
+            float x = event.getX();
+            float y = event.getY();
+            float margin_pause = getResources().getDimension(R.dimen.margin_pause);
+            float pause_size = getResources().getDimension(R.dimen.size_pause);
 //            if (gameOver) {
 //                startNewGame();
 //            }
 //            else {
-                //TODO not in the middle on 18.5:9 screens, is it?
-//                boolean clickedInRightHalf = event.getX() >= screenWidth / 2;
-//                if(clickedInRightHalf){
-                    //TODO fix rotation
-//                }
-//                rotateSquare(square, clickedInRightHalf);
-//            }
+            boolean clickedOnPause =    x >= displayMetrics.widthPixels - (pause_size + margin_pause) &&
+                                        y >= margin_pause && y <= margin_pause + pause_size;
+            if (clickedOnPause){
+                gameActivityLayoutView.setPaused(!gameActivityLayoutView.isPaused());
+
+            }
+
+
+            else{
+                boolean clickedInRightHalf = event.getX() >= displayMetrics.widthPixels / 2;
+
+                //futureRotations are the rotations that will be executed after the currently executed rotation
+                Queue<Integer> futureRotations = gameActivityLayoutView.getFutureRotations();
+                if(futureRotations.size() < 5 && !gameActivityLayoutView.isPaused()){
+                    if(clickedInRightHalf){
+                        //rotate square right by 90 degrees
+                        futureRotations.add(90);
+                    }
+                    else{
+                        //rotate square left by 90 degrees
+                        futureRotations.add(-90);
+                    }
+                }
+                gameActivityLayoutView.setFutureRotations(futureRotations);
+            }
         }
         return super.onTouchEvent(event);
     }
@@ -169,7 +194,7 @@ public class GameActivity extends AppCompatActivity {
 
 //    private void pauseStripes(){
 //        for (Animator animator : stripeAnimators) {
-//            animator.pause();
+//            animator.pause_button();
 //        }
 //    }
 //    private void resumeStripes(){
@@ -202,44 +227,44 @@ public class GameActivity extends AppCompatActivity {
 
 
 
-//
-//    /**
-//     * Rotates the square right if the right half of the screen is clicked. Because otherwise the position of the square could
-//     * differ from the wanted states (0°, 90°, 180° and 270°), it is necessary to prohibit starting a new rotation,
-//     * while already doing one. Therefore a queue is used that is filled with rotations that were requested but cannot be
-//     * executed right away. This queue is dismantled right after (+20 ms to prevent mistakes) the first rotation is finished.
-//     * @param square the square to rotate
-//     * @param rightRound
-//     */
-//    private void rotateSquare(View square, boolean rightRound){
-//        if (!rotating) {
-//            rotating = true;
-//            new Handler().postDelayed(() -> currentPosition = (currentPosition + (rightRound ? 1 : 3)) % 4, ROTATION_TIME /2);
-//            new RotationAnimation(square).setDegrees(rightRound ? 90 : -90).setDuration(ROTATION_TIME).animate();
-//
-//            //after rotating take the rotations from the list until it is empty
-//            new Handler().postDelayed(() -> {
-//                rotating = false;
-//
-//                if (!futureRotations.isEmpty()){
-//                    boolean rotateRight = futureRotations.poll();
-//
-//                    if (rotateRight){
-//                        rotateSquare(square, true);
-//                    }
-//                    else{
-//                       rotateSquare(square, false);
-//                    }
-//                }
-//            }, ROTATION_TIME + 20);
-//
-//
-//        }
-//        //build up a list of rotations that were requested but not yet executed
-//        else if (futureRotations.size() <= maxFutureRotations){
-//            futureRotations.add(rightRound);
-//        }
-//    }
+
+    /**
+     * Rotates the square right if the right half of the screen is clicked. Because otherwise the position of the square could
+     * differ from the wanted states (0°, 90°, 180° and 270°), it is necessary to prohibit starting a new rotation,
+     * while already doing one. Therefore a queue is used that is filled with rotations that were requested but cannot be
+     * executed right away. This queue is dismantled right after (+20 ms to prevent mistakes) the first rotation is finished.
+     * @param square the square to rotate
+     * @param rightRound
+     */
+    private void rotateSquare(View square, boolean rightRound){
+        if (!rotating) {
+            rotating = true;
+            new Handler().postDelayed(() -> currentPosition = (currentPosition + (rightRound ? 1 : 3)) % 4, ROTATION_TIME /2);
+            new RotationAnimation(square).setDegrees(rightRound ? 90 : -90).setDuration(ROTATION_TIME).animate();
+
+            //after rotating take the rotations from the list until it is empty
+            new Handler().postDelayed(() -> {
+                rotating = false;
+
+                if (!futureRotations.isEmpty()){
+                    boolean rotateRight = futureRotations.poll();
+
+                    if (rotateRight){
+                        rotateSquare(square, true);
+                    }
+                    else{
+                       rotateSquare(square, false);
+                    }
+                }
+            }, ROTATION_TIME + 20);
+
+
+        }
+        //build up a list of rotations that were requested but not yet executed
+        else if (futureRotations.size() <= maxFutureRotations){
+            futureRotations.add(rightRound);
+        }
+    }
 
 
 //    /**
@@ -270,7 +295,7 @@ public class GameActivity extends AppCompatActivity {
 //        runOnUiThread(() -> {
 //            square.bringToFront();
 //            scoreboard.bringToFront();
-//            pause.bringToFront();
+//            pause_button.bringToFront();
 //        });
 //
 //
