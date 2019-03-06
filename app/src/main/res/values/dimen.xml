@@ -1,9 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
+    <!-- GameActivity -->
     <dimen name="margin_square">50dp</dimen>
-    <dimen name="margin_points">20dp</dimen>
-    <dimen name="size_pause">50dp</dimen>
+
+    <dimen name="margin_score_x">100dp</dimen>
+    <dimen name="margin_score_y">20dp</dimen>
+    <dimen name="text_size">40sp</dimen>
+
+    <dimen name="size_pause">45dp</dimen>
     <dimen name="margin_pause">20dp</dimen>
-    <dimen name="text_size">20sp</dimen>
+
 </resources>

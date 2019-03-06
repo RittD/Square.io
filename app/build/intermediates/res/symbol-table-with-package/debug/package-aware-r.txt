@@ -525,7 +525,8 @@ dimen hint_alpha_material_light
 dimen hint_pressed_alpha_material_dark
 dimen hint_pressed_alpha_material_light
 dimen margin_pause
-dimen margin_points
+dimen margin_score_x
+dimen margin_score_y
 dimen margin_square
 dimen notification_action_icon_size
 dimen notification_action_text_size
@@ -723,7 +724,6 @@ id forever
 id gone
 id group_divider
 id groups
-id guideline
 id home
 id homeAsUp
 id icon
@@ -750,7 +750,6 @@ id notification_main_column_container
 id packed
 id parent
 id parentPanel
-id pause
 id percent
 id progress_circular
 id progress_horizontal
@@ -758,7 +757,6 @@ id radio
 id right
 id right_icon
 id right_side
-id scoreboard
 id screen
 id scrollIndicatorDown
 id scrollIndicatorUp
@@ -782,7 +780,6 @@ id spacer
 id split_action_bar
 id spread
 id spread_inside
-id square
 id src_atop
 id src_in
 id src_over
@@ -843,7 +840,6 @@ layout abc_search_dropdown_item_icons_2line
 layout abc_search_view
 layout abc_select_dialog_material
 layout abc_tooltip
-layout activity_game
 layout activity_game_over
 layout notification_action
 layout notification_action_tombstone
