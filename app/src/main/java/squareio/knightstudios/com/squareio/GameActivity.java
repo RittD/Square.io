@@ -79,8 +79,10 @@ public class GameActivity extends AppCompatActivity {
             float margin_pause = getResources().getDimension(R.dimen.margin_pause);
             float pause_size = getResources().getDimension(R.dimen.size_pause);
             if (gameActivityLayoutView.gameOver) {
-                Toast.makeText(getApplicationContext(), "Let's try again!", Toast.LENGTH_SHORT).show();
-                gameActivityLayoutView.startNewGame();
+                if (!gameActivityLayoutView.isWaiting()) {
+                    Toast.makeText(getApplicationContext(), "Let's try again!", Toast.LENGTH_SHORT).show();
+                    gameActivityLayoutView.startNewGame();
+                }
             }
             else {
                 boolean clickedOnPause = x >= displayMetrics.widthPixels - (pause_size + margin_pause) &&

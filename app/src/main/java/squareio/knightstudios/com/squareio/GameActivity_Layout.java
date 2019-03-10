@@ -12,7 +12,6 @@ import android.util.DisplayMetrics;
 import android.util.SparseArray;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
-import android.view.View;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -21,6 +20,7 @@ import java.util.Queue;
 import java.util.Random;
 
 public class GameActivity_Layout extends SurfaceView implements Runnable {
+
 
     Thread thread = null;
     boolean canDraw = false;
@@ -42,18 +42,12 @@ public class GameActivity_Layout extends SurfaceView implements Runnable {
     int square_x, square_y, pause_x, pause_y, score_x, score_y;
 
 
-    Paint redPaint, yellowPaint,greenPaint, bluePaint, blackPaint, whitePaint;
+    Paint redPaint, yellowPaint,greenPaint, bluePaint, blackPaint, whitePaint, redTextPaint;
     SparseArray<Paint> paints = new SparseArray<>(4);
 
     Random random = new Random();
 
-    // in px per second
-    int speed = 20;
 
-    // in milliseconds
-    int pauseTime = 2500;
-
-    int timeTillNextStripe = 0;
 
     List<Stripe> stripes = new LinkedList<>();
 
@@ -69,7 +63,27 @@ public class GameActivity_Layout extends SurfaceView implements Runnable {
     private List<Stripe> countableStripes = new LinkedList<>();
     boolean gameOver = false;
 
+    //raises every 10 points
     int level = 0;
+    private boolean level_up = false;
+    private final int MAX_SPEED = dpToPx(550);
+    private final int MIN_SPEED = dpToPx(200);
+
+    // in px per second
+    int speed = 0;
+
+    // in milliseconds
+    int pauseTime = 0;
+    private static final int MAX_PAUSE = 2300;
+    private static final int MIN_PAUSE = 800;
+
+    int timeTillNextStripe = 0;
+
+    private static final double EXP_FACTOR = -0.08;
+    private boolean waitAfterNext = false;
+
+    private boolean waiting = false;
+    private boolean alreadyWaited = false;
 
     public GameActivity_Layout(Context context) {
         super(context);
@@ -109,20 +123,16 @@ public class GameActivity_Layout extends SurfaceView implements Runnable {
         play_button = Bitmap.createScaledBitmap(play_button, pause_size, pause_size, false);
 
         score_x = (int) getResources().getDimension(R.dimen.margin_score_x);
-        score_y = (int) getResources().getDimension(R.dimen.margin_score_y);
+        score_y = (int) getResources().getDimension(R.dimen.margin_score_y) + (int) getResources().getDimension(R.dimen.text_size);
 
         preparePainters();
 
 
         //Prepare game loop variables
-        frames_per_second = 40; //35;
+        frames_per_second = 70;
         frame_time_seconds = 1/frames_per_second;
         frame_time_ms = frame_time_seconds * 1000;
         frame_time_ns = frame_time_ms * 1_000_000;
-
-
-        //Prepare stripe
-//        stripes.add(generateNewRandomStripe());
 
 
     }
@@ -160,6 +170,12 @@ public class GameActivity_Layout extends SurfaceView implements Runnable {
         whitePaint.setTextSize(getResources().getDimension(R.dimen.text_size));
         whitePaint.setTextAlign(Paint.Align.CENTER);
         whitePaint.setStyle(Paint.Style.FILL);
+
+        redTextPaint = new Paint();
+        redTextPaint.setColor(Color.RED);
+        redTextPaint.setTextSize(getResources().getDimension(R.dimen.text_size_big));
+        redTextPaint.setTextAlign(Paint.Align.CENTER);
+        redTextPaint.setStyle(Paint.Style.FILL);
 
 
         //Collect paints
@@ -216,19 +232,18 @@ public class GameActivity_Layout extends SurfaceView implements Runnable {
 
 
             tEndOfRender = System.nanoTime();
+//            System.out.println("Render time: "+(tEndOfRender - tLastFrame)/1_000_000);
             delta_t = frame_time_ns - (tEndOfRender - tLastFrame);
 
             try {
                 if (delta_t > 0) {
                     thread.sleep((long) delta_t / 1_000_000);
                 }
-//                else{
-//                    System.out.println("skipped sth.");
-//                }
             }
             catch (InterruptedException e){
                 e.printStackTrace();
             }
+            System.out.println("Render time: "+(System.nanoTime() - tLastFrame)/1_000_000);
             tLastFrame = System.nanoTime();
         }
     }
@@ -290,13 +305,13 @@ public class GameActivity_Layout extends SurfaceView implements Runnable {
 
             if (currentStripe.left <= firstContact && currentStripe.left >= lastContact
                     && square_color != stripe_color){
-                System.out.println(square_color+" "+stripe_color);
                 paused = true;
                 gameOver = true;
             }
             if (currentStripe.left <= lastContact && countableStripes.contains(s)
                     && square_color == stripe_color){
                 score++;
+                level_up = score%10 == 0;
                 countableStripes.remove(s);
             }
         }
@@ -306,6 +321,7 @@ public class GameActivity_Layout extends SurfaceView implements Runnable {
         rotationAngle = 0;
         futureRotations = new PriorityQueue<>();
         paused = false;
+        alreadyWaited = false;
         gameOver = false;
         score = 0;
         stripes = new LinkedList<>();
@@ -321,7 +337,7 @@ public class GameActivity_Layout extends SurfaceView implements Runnable {
      * @return whether the given stripe is still visible and was therefore moved
      */
     private boolean updateStripe(Stripe stripe, double delta_t) {
-//        System.out.println("deltat: "+delta_t);
+        System.out.println("delta_t in ms: "+delta_t/1_000_000);
 //        System.out.println("moved: "+speed * delta_t/1_000_000_000);
 //
         Rect movedStripe = stripe.getStripe();
@@ -330,8 +346,15 @@ public class GameActivity_Layout extends SurfaceView implements Runnable {
         if(movedStripe.right < 0){
             return false;
         }
-//TODO ruckeln in den Griff kriegen + Geschwindigkeit und Zeit anpassen
-        double movement = speed + level*3; //* delta_t/1_000_000_000;
+//TODO Geschwindigkeit und Zeit anpassen
+
+        speed = (int) (MAX_SPEED - (MAX_SPEED-MIN_SPEED)*Math.exp(EXP_FACTOR*level));
+        double movement = speed*(frame_time_seconds - (delta_t < 0 ? (delta_t/1_000_000_000) : 0)); //+ level*1.5;
+
+        if (movement >= 25){
+            System.out.println("moved: "+movement);
+        }
+
         movedStripe.left -= movement;
         movedStripe.right -= movement;
         stripe.setStripe(movedStripe);
@@ -340,6 +363,7 @@ public class GameActivity_Layout extends SurfaceView implements Runnable {
 
     private void draw() {
         canvas = surfaceHolder.lockCanvas();
+
 
         //background
         canvas.drawBitmap(background,0,0,null);
@@ -351,32 +375,55 @@ public class GameActivity_Layout extends SurfaceView implements Runnable {
         canvas.drawBitmap(square, matrix, null);
 
         //pause/play
-        if(paused){
-            canvas.drawBitmap(play_button, pause_x, pause_y,null);
-        }
-        else{
-            canvas.drawBitmap(pause_button, pause_x, pause_y,null);
-        }
+        canvas.drawBitmap(paused? play_button : pause_button, pause_x, pause_y,null);
+
 
         //score
-        canvas.drawText(String.valueOf(score),
-                score_x,
-                score_y + getResources().getDimension(R.dimen.text_size), whitePaint);
+        if (level_up){
+            level_up = false;
+            canvas.drawText(String.valueOf(score), score_x, score_y, redTextPaint);
+        }
+        else{
+            canvas.drawText(String.valueOf(score), score_x, score_y, whitePaint);
+        }
 
         surfaceHolder.unlockCanvasAndPost(canvas);
     }
 
     private void drawStripes() {
+
         if (timeTillNextStripe <= 0){
-//            System.out.println(timeTillNextStripe);
             stripes.add(generateNewRandomStripe());
-            timeTillNextStripe = pauseTime - level * 300;
+            pauseTime = (int)(MIN_PAUSE+(MAX_PAUSE-MIN_PAUSE)*Math.exp(3*EXP_FACTOR*level));
+            timeTillNextStripe = pauseTime;
         }
         for (Stripe s : stripes) {
             canvas.drawRect(s.getStripe(), s.getPaint());
             //Todo give stripes a black edge?!
             //canvas.drawRect(s.getStripe(), blackPaint);
         }
+
+        //Wait for 1 second after losing a game. Do not accept any input in this time.
+        if (waitAfterNext){
+            try {
+                waiting = true;
+                //TODO Find a better solution for waiting after game ends
+                thread.sleep(1000);
+                waiting = false;
+                alreadyWaited = true;
+                waitAfterNext = false;
+            }
+            catch (InterruptedException e){
+                e.printStackTrace();
+            }
+        }
+
+        //Wait after next step. This is the first one where the stripe and the square collide.
+        if(gameOver && !alreadyWaited){
+           waitAfterNext = true;
+        }
+
+
     }
 
 
@@ -387,7 +434,7 @@ public class GameActivity_Layout extends SurfaceView implements Runnable {
     public Stripe generateNewRandomStripe() {
 
         int colorCode = random.nextInt(4);
-        int stripeWidth = 200 + random.nextInt(200);
+        int stripeWidth = 300 + random.nextInt(250);
         Paint painter = paints.get(colorCode);
         Rect stripe = new Rect();
         stripe.set(screenMetrics.widthPixels, 0, screenMetrics.widthPixels + stripeWidth, screenMetrics.heightPixels);
@@ -405,18 +452,18 @@ public class GameActivity_Layout extends SurfaceView implements Runnable {
     //Auxiliary methods:
 
     private int calculateDegreesPerFrame() {
-        int ROTATION_TIME = 200;
-        int DEGREES_PER_ROTATION = 90;
-        return (int) (frame_time_ms * DEGREES_PER_ROTATION)/ ROTATION_TIME;
+        final int ROTATION_TIME_MS = (int) (MIN_PAUSE/8 + (MAX_PAUSE/12-MIN_PAUSE/8)* Math.exp(2*EXP_FACTOR*level));
+        final int DEGREES_PER_ROTATION = 90;
+        return (int) ((frame_time_ms - (delta_t < 0 ? delta_t/1_000_000 : 0)) * DEGREES_PER_ROTATION)/ ROTATION_TIME_MS;
     }
 
-    public static Bitmap loadBitmapFromView(View v) {
-        Bitmap b = Bitmap.createBitmap( v.getLayoutParams().width, v.getLayoutParams().height, Bitmap.Config.ARGB_8888);
-        Canvas c = new Canvas(b);
-        v.layout(v.getLeft(), v.getTop(), v.getRight(), v.getBottom());
-        v.draw(c);
-        return b;
-    }
+//    public static Bitmap loadBitmapFromView(View v) {
+//        Bitmap b = Bitmap.createBitmap( v.getLayoutParams().width, v.getLayoutParams().height, Bitmap.Config.ARGB_8888);
+//        Canvas c = new Canvas(b);
+//        v.layout(v.getLeft(), v.getTop(), v.getRight(), v.getBottom());
+//        v.draw(c);
+//        return b;
+//    }
 
     public int getColorOfSquare(){
 
@@ -449,10 +496,10 @@ public class GameActivity_Layout extends SurfaceView implements Runnable {
     private int dpToPx(int dp){
         return screenMetrics.densityDpi/160 * dp;
     }
-
-    private int pxToDp(int px){
-        return px * 160 / screenMetrics.densityDpi;
-    }
+//
+//    private int pxToDp(int px){
+//        return px * 160 / screenMetrics.densityDpi;
+//    }
 
 
     /*-------------------------------------------------------------------------------*/
@@ -466,6 +513,10 @@ public class GameActivity_Layout extends SurfaceView implements Runnable {
 
     public boolean isPaused() {
         return paused;
+    }
+
+    public boolean isWaiting() {
+        return waiting;
     }
 
 
