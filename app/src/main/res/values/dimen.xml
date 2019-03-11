@@ -6,10 +6,13 @@
 
     <dimen name="margin_score_x">100dp</dimen>
     <dimen name="margin_score_y">20dp</dimen>
-    <dimen name="text_size">40sp</dimen>
-    <dimen name="text_size_big">45sp</dimen>
-
-    <dimen name="size_pause">45dp</dimen>
+    <dimen name="text_size_small">30dp</dimen>
+    <dimen name="text_size">50dp</dimen>
+    <dimen name="text_size_big">78dp</dimen>
+    <dimen name="margin_tap_to_start">40dp</dimen>
+    <dimen name="size_pause">50dp</dimen>
     <dimen name="margin_pause">20dp</dimen>
+
+
 
 </resources>

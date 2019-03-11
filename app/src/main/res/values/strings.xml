@@ -1,11 +1,4 @@
 <resources>
     <string name="app_name">Square.io</string>
-
-    <string name="yellow_stripe">yellow stripe</string>
-    <string name="red_stripe">red stripe</string>
-    <string name="blue_stripe">blue stripe</string>
-    <string name="green_stripe">green stripe</string>
-    <string name="square">square</string>
     <string name="initial_score">0</string>
-    <string name="pause_button">pause button</string>
 </resources>

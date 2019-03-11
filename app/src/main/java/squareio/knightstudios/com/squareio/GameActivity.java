@@ -7,44 +7,18 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.DisplayMetrics;
 import android.view.MotionEvent;
 import android.view.WindowManager;
-import android.widget.TextView;
 import android.widget.Toast;
-
-import java.util.LinkedList;
 import java.util.Queue;
-//import android.os.Handler;
-//
-//import android.view.MotionEvent;
-//import android.view.View;
-//
-//import android.widget.ImageView;
-//import android.widget.RelativeLayout;
-//import android.widget.TextView;
-//
-//import com.easyandroidanimations.library.*;
-//
-//
-//import java.util.LinkedList;
-//import java.util.Queue;
 
 
 /**
- * Annotation 1:
- * The positions of the colors are: 0 = red, 1 = yellow, 2 = blue and 3 = green.
- *
- *
- * Annotation 2:
- * The basic units everything is calculated with are pixels and milliseconds.
+ * The main activity of the game. It calls GameActivity_Layout which renders the whole game.
+ * This class prepares the rendering and takes the user interaction in the game.
  */
 public class GameActivity extends AppCompatActivity {
 
     GameActivity_Layout gameActivityLayoutView;
     static DisplayMetrics displayMetrics;
-
-
-    //Square
-//    static final int ROTATION_TIME = 80;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,6 +39,8 @@ public class GameActivity extends AppCompatActivity {
 
 
     /**
+     * Handles the whole user interaction in the game activity:
+     *
      * When clicking on the pause_button button, the game should pause_button.
      * Otherwise provides the 90°-rotation of the square clockwise (anti-clockwise)
      * when clicking on the right (left) half of the screen.
@@ -78,9 +54,8 @@ public class GameActivity extends AppCompatActivity {
             float y = event.getY();
             float margin_pause = getResources().getDimension(R.dimen.margin_pause);
             float pause_size = getResources().getDimension(R.dimen.size_pause);
-            if (gameActivityLayoutView.gameOver) {
+            if (gameActivityLayoutView.isGameOver()) {
                 if (!gameActivityLayoutView.isWaiting()) {
-                    Toast.makeText(getApplicationContext(), "Let's try again!", Toast.LENGTH_SHORT).show();
                     gameActivityLayoutView.startNewGame();
                 }
             }
@@ -120,7 +95,6 @@ public class GameActivity extends AppCompatActivity {
     protected void onPause() {
         super.onPause();
         gameActivityLayoutView.pause();
-//        stripeMovement.onPause();
     }
 
 
@@ -128,32 +102,5 @@ public class GameActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         gameActivityLayoutView.resume();
-//        stripeMovement.onResume();
     }
-
-
-
-//    /**
-//     * Only called when a collision happened and the game shall stop. A new game can only be started
-//     * by calling startNewGame.
-//     */
-//    private void gameEnds(){
-//        stripeMovement.interrupt();
-////        gameOver = true;
-////        cancelStripes();
-////        Toast.makeText(getApplicationContext(), "Game over!", Toast.LENGTH_SHORT).show();
-//    }
-//
-//    //TODO integrate at a nice place
-//    private void startNewGame(){
-//        gameOver = false;
-//        score = 0;
-//        scoreboard.setText(R.string.initial_score);
-//        cancelStripes();
-//        new Handler().postDelayed(this::startNewStripe, 2000);
-//    }
-
-
-
-//TODO tidy up and comment EVERYTHING!
 }

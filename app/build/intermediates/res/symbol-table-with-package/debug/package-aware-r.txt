@@ -528,6 +528,7 @@ dimen margin_pause
 dimen margin_score_x
 dimen margin_score_y
 dimen margin_square
+dimen margin_tap_to_start
 dimen notification_action_icon_size
 dimen notification_action_text_size
 dimen notification_big_circle_margin
@@ -546,6 +547,7 @@ dimen notification_top_pad_large_text
 dimen size_pause
 dimen text_size
 dimen text_size_big
+dimen text_size_small
 dimen tooltip_corner_radius
 dimen tooltip_horizontal_padding
 dimen tooltip_margin
@@ -894,15 +896,9 @@ string abc_shareactionprovider_share_with
 string abc_shareactionprovider_share_with_application
 string abc_toolbar_collapse_description
 string app_name
-string blue_stripe
-string green_stripe
 string initial_score
-string pause_button
-string red_stripe
 string search_menu_title
-string square
 string status_bar_notification_info_overflow
-string yellow_stripe
 style AlertDialog_AppCompat
 style AlertDialog_AppCompat_Light
 style Animation_AppCompat_Dialog

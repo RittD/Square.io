@@ -27,10 +27,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity
-            android:name="squareio.knightstudios.com.squareio.GameOverActivity"
-            android:screenOrientation="landscape" >
-        </activity>
 
         <provider
             android:name="com.android.tools.ir.server.InstantRunContentProvider"
