@@ -1,4 +1,5 @@
 <resources>
+    <string name="server_client_id">746777062685-1gnvo99ncduhptiqhf53rbi067bpl97e.apps.googleusercontent.com</string>
     <string name="app_name">Square.io</string>
     <string name="initial_score">0</string>
 </resources>
