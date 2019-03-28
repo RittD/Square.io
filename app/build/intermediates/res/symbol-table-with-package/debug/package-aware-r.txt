@@ -542,7 +542,7 @@ dimen hint_alpha_material_dark
 dimen hint_alpha_material_light
 dimen hint_pressed_alpha_material_dark
 dimen hint_pressed_alpha_material_light
-dimen margin_pause
+dimen margin_icon
 dimen margin_score_x
 dimen margin_score_y
 dimen margin_square
@@ -562,9 +562,10 @@ dimen notification_small_icon_size_as_large
 dimen notification_subtext_size
 dimen notification_top_pad
 dimen notification_top_pad_large_text
-dimen size_pause
+dimen size_icon
 dimen text_size
 dimen text_size_big
+dimen text_size_medium
 dimen text_size_small
 dimen tooltip_corner_radius
 dimen tooltip_horizontal_padding
@@ -682,8 +683,10 @@ drawable common_google_signin_btn_text_light_normal
 drawable common_google_signin_btn_text_light_normal_background
 drawable googleg_disabled_color_18
 drawable googleg_standard_color_18
+drawable home_80px
 drawable ic_launcher_background
 drawable ic_launcher_foreground
+drawable medal_80px
 drawable notification_action_background
 drawable notification_bg
 drawable notification_bg_low
@@ -698,10 +701,13 @@ drawable notification_tile_bg
 drawable notify_panel_notification_icon_bg
 drawable pause
 drawable play
+drawable settings_80px
 drawable tooltip_frame_dark
 drawable tooltip_frame_light
 drawable twister
 drawable twister_100px
+drawable twister_light
+drawable twister_light_100px
 id ALT
 id CTRL
 id FUNCTION
@@ -740,8 +746,6 @@ id barrier
 id beginning
 id blocking
 id bottom
-id btn_login
-id btn_logout
 id buttonPanel
 id cancel_action
 id center
@@ -764,7 +768,6 @@ id dimensions
 id direct
 id disableHome
 id edit_query
-id email
 id end
 id end_padder
 id expand_activities_button
@@ -796,7 +799,6 @@ id media_actions
 id message
 id middle
 id multiply
-id name
 id never
 id none
 id normal
@@ -807,8 +809,6 @@ id packed
 id parent
 id parentPanel
 id percent
-id prof_pic
-id prof_section
 id progress_circular
 id progress_horizontal
 id radio

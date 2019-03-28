@@ -1,18 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <!-- GameActivity -->
-    <dimen name="margin_square">50dp</dimen>
+    <!-- UI margins -->
+        <dimen name="margin_square">50dp</dimen>
+        <dimen name="margin_score_x">100dp</dimen>
+        <dimen name="margin_score_y">10dp</dimen>
+        <dimen name="margin_tap_to_start">20dp</dimen>
 
-    <dimen name="margin_score_x">100dp</dimen>
-    <dimen name="margin_score_y">20dp</dimen>
-    <dimen name="text_size_small">30dp</dimen>
-    <dimen name="text_size">50dp</dimen>
-    <dimen name="text_size_big">78dp</dimen>
-    <dimen name="margin_tap_to_start">40dp</dimen>
-    <dimen name="size_pause">50dp</dimen>
-    <dimen name="margin_pause">20dp</dimen>
+    <!-- text sizes -->
+        <dimen name="text_size_small">25dp</dimen>
+        <dimen name="text_size">50dp</dimen>
+        <dimen name="text_size_medium">62dp</dimen>
+        <dimen name="text_size_big">78dp</dimen>
 
-
+    <!-- icons -->
+        <dimen name="size_icon">50dp</dimen>
+        <dimen name="margin_icon">20dp</dimen>
 
 </resources>

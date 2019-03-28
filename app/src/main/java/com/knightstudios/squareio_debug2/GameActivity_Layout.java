@@ -21,7 +21,7 @@ import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.Random;
 
-
+//TODO build different sizes of icons+square
 /**
  * This Class is the frontend of the GameActivity. It shows the game by executing the run() method
  * which is called automatically when setting this class as layout(setContentView) in an activity.
@@ -32,12 +32,12 @@ public class GameActivity_Layout extends SurfaceView implements Runnable {
 
     private static final DisplayMetrics screenMetrics = GameActivity.displayMetrics;
     private Thread thread = null;
+    private GameState gameState = GameState.IN_MENU;
 
 
-
-    private static Bitmap background, square, pause_button, play_button;
-    private static int square_x, square_y, pause_x, pause_y, score_x, score_y,
-            gameOver_x, gameOver_y, tapRestart_y;
+    private static Bitmap background, square, pause_button, home_button, leaderboard_button, settings_button;
+    static int square_x, square_y, pause_x, pause_y, score_x, score_y, leaderboard_x, leaderboard_y,
+            gameOver_x, gameOver_y, tapRestart_y, home_x, home_y;
     private boolean canDraw = false;
     private static Canvas canvas;
     private static SurfaceHolder surfaceHolder;
@@ -46,7 +46,7 @@ public class GameActivity_Layout extends SurfaceView implements Runnable {
     private double delta_t;
 
 
-    private Paint whiteTextPaint, whiteTextPaintBig, whiteTextPaintShadow, redTextPaint, alphaPaint;
+    private Paint scoreStandardPaint, whiteTextPaintBig, pausePaint, scoreHighlightPaint, alphaPaint;
     private SparseArray<Paint> stripePaints = new SparseArray<>(4);
 
     private Random random = new Random();
@@ -61,8 +61,8 @@ public class GameActivity_Layout extends SurfaceView implements Runnable {
     private Queue<Integer> futureRotations = new PriorityQueue<>();
 
 
-    private boolean paused = false;
-    private boolean gameOver = false;
+//    private boolean paused = false;
+//    private boolean gameOver = false;
     Rect backgroundVeil;
 
     //level raises every 10 points
@@ -108,61 +108,98 @@ public class GameActivity_Layout extends SurfaceView implements Runnable {
 
 
     private void prepareUIElements() {
+
+        //background
         Bitmap immutableBackground = BitmapFactory.decodeResource(getResources(),R.drawable.background);
         background = immutableBackground.copy(Bitmap.Config.ARGB_8888,true);
         background = Bitmap.createScaledBitmap(background, screenMetrics.widthPixels, screenMetrics.heightPixels, false);
 
+        //square
+        square = BitmapFactory.decodeResource((getResources()),R.drawable.twister_light_100px);
 
-        square = BitmapFactory.decodeResource((getResources()),R.drawable.twister_100px);
-        square_x = (int) getResources().getDimension(R.dimen.margin_square);
-        square_y = (screenMetrics.heightPixels)/2 - square.getHeight()/2;
-
-
-        int pause_size = (int)getResources().getDimension(R.dimen.size_pause);
-        int pause_margin = (int) getResources().getDimension(R.dimen.margin_pause);
+        //icons
+        int icon_size = (int)getResources().getDimension(R.dimen.size_icon);
 
         Bitmap immutablePause = BitmapFactory.decodeResource(getResources(),R.drawable.pause);
         pause_button = immutablePause.copy(Bitmap.Config.ARGB_8888,true);
-        pause_button = Bitmap.createScaledBitmap(pause_button, pause_size, pause_size, false);
-        pause_x = screenMetrics.widthPixels - (pause_button.getWidth() + pause_margin);
-        pause_y = pause_margin;
+        pause_button = Bitmap.createScaledBitmap(pause_button, icon_size, icon_size, false);
 
-        Bitmap immutablePlay = BitmapFactory.decodeResource(getResources(),R.drawable.play);
-        play_button = immutablePlay.copy(Bitmap.Config.ARGB_8888,true);
-        play_button = Bitmap.createScaledBitmap(play_button, pause_size, pause_size, false);
+
+//        Bitmap immutablePlay = BitmapFactory.decodeResource(getResources(),R.drawable.play);
+//        play_button = immutablePlay.copy(Bitmap.Config.ARGB_8888,true);
+//        play_button = Bitmap.createScaledBitmap(play_button, icon_size, icon_size, false);
+
+        Bitmap immutableHome = BitmapFactory.decodeResource(getResources(),R.drawable.home_80px);
+        home_button = immutableHome.copy(Bitmap.Config.ARGB_8888,true);
+        home_button = Bitmap.createScaledBitmap(home_button, icon_size, icon_size, false);
+
+
+        Bitmap immutableHighscore = BitmapFactory.decodeResource(getResources(),R.drawable.medal_80px);
+        leaderboard_button = immutableHighscore.copy(Bitmap.Config.ARGB_8888,true);
+        leaderboard_button = Bitmap.createScaledBitmap(leaderboard_button, icon_size, icon_size, false);
+
+
+        Bitmap immutableSettings = BitmapFactory.decodeResource(getResources(),R.drawable.settings_80px);
+        settings_button = immutableSettings.copy(Bitmap.Config.ARGB_8888,true);
+        settings_button = Bitmap.createScaledBitmap(settings_button, icon_size, icon_size, false);
+
+
+
+        backgroundVeil = new Rect();
+        backgroundVeil.set(0, 0, screenMetrics.widthPixels, screenMetrics.heightPixels);
+
+
+        prepareUIPositions();
+    }
+
+
+    private void prepareUIPositions() {
+        square_x = (int) getResources().getDimension(R.dimen.margin_square);
+        square_y = (screenMetrics.heightPixels)/2 - square.getHeight()/2;
+
+        int icon_size = (int)getResources().getDimension(R.dimen.size_icon);
+        int icon_margin = (int) getResources().getDimension(R.dimen.margin_icon);
+
+        pause_x = screenMetrics.widthPixels - (icon_size + icon_margin);
+        pause_y = icon_margin;
+
+        home_x = screenMetrics.widthPixels - (icon_size + icon_margin);
+        home_y = screenMetrics.heightPixels - (icon_size + icon_margin);
+
+        leaderboard_x = icon_margin;
+        leaderboard_y = icon_margin;
 
         score_x = (int) getResources().getDimension(R.dimen.margin_score_x);
-        score_y = (int) getResources().getDimension(R.dimen.margin_score_y) + (int) getResources().getDimension(R.dimen.text_size);
+        score_y = (int) getResources().getDimension(R.dimen.text_size)+(int) getResources().getDimension(R.dimen.margin_score_y);
 
         gameOver_x = screenMetrics.widthPixels/2;
         gameOver_y = screenMetrics.heightPixels/2;
 
-        tapRestart_y = gameOver_y + (int) getResources().getDimension(R.dimen.margin_tap_to_start)
-                + (int) getResources().getDimension(R.dimen.text_size);
-
-        backgroundVeil = new Rect();
-        backgroundVeil.set(0, 0, screenMetrics.widthPixels, screenMetrics.heightPixels);
+        tapRestart_y = gameOver_y
+                + (int) getResources().getDimension(R.dimen.margin_tap_to_start)
+                + (int) getResources().getDimension(R.dimen.text_size_medium);
     }
+
 
     private void preparePainters() {
         //Paints for stripes
         Paint redPaint = new Paint();
-        redPaint.setColor(Color.RED);
+        redPaint.setColor(Color.rgb(255, 0, 0));
         redPaint.setStyle(Paint.Style.FILL);
 
 
         Paint yellowPaint = new Paint();
-        yellowPaint.setColor(Color.YELLOW);
+        yellowPaint.setColor(Color.rgb(255,235,0));
         yellowPaint.setStyle(Paint.Style.FILL);
 
 
         Paint greenPaint = new Paint();
-        greenPaint.setColor(Color.GREEN);
+        greenPaint.setColor(Color.rgb(0,160,14));
         greenPaint.setStyle(Paint.Style.FILL);
 
 
         Paint bluePaint = new Paint();
-        bluePaint.setColor(Color.BLUE);
+        bluePaint.setColor(Color.rgb(0, 25, 225));
         bluePaint.setStyle(Paint.Style.FILL);
 
         //Paint for stripe borders
@@ -171,40 +208,41 @@ public class GameActivity_Layout extends SurfaceView implements Runnable {
         blackPaint.setStyle(Paint.Style.STROKE);
 
         //Paints for text
-        whiteTextPaint = new Paint();
-        whiteTextPaint.setColor(Color.WHITE);
-        whiteTextPaint.setTextSize(getResources().getDimension(R.dimen.text_size));
-        whiteTextPaint.setTextAlign(Paint.Align.CENTER);
-        whiteTextPaint.setStyle(Paint.Style.FILL);
+        scoreStandardPaint = new Paint();
+        scoreStandardPaint.setColor(Color.WHITE);
+        scoreStandardPaint.setTextSize(getResources().getDimension(R.dimen.text_size));
+        scoreStandardPaint.setTextAlign(Paint.Align.CENTER);
+        scoreStandardPaint.setStyle(Paint.Style.FILL);
+        scoreStandardPaint.setShadowLayer(50,0,0,Color.BLACK);
+
+
+        scoreHighlightPaint = new Paint();
+        scoreHighlightPaint.setColor(Color.RED);
+        scoreHighlightPaint.setTextSize(getResources().getDimension(R.dimen.text_size_big));
+        scoreHighlightPaint.setTextAlign(Paint.Align.CENTER);
+        scoreHighlightPaint.setStyle(Paint.Style.FILL);
 
         whiteTextPaintBig = new Paint();
         whiteTextPaintBig.setColor(Color.WHITE);
-        whiteTextPaintBig.setShader(new Shader());
         whiteTextPaintBig.setTextSize(getResources().getDimension(R.dimen.text_size_big));
         whiteTextPaintBig.setTextAlign(Paint.Align.CENTER);
         whiteTextPaintBig.setStyle(Paint.Style.FILL);
         whiteTextPaintBig.setShadowLayer(30, 0, 0, Color.WHITE);
 
-        whiteTextPaintShadow = new Paint();
-        whiteTextPaintShadow.setColor(Color.WHITE);
-        whiteTextPaintShadow.setShader(new Shader());
-        whiteTextPaintShadow.setTextSize(getResources().getDimension(R.dimen.text_size));
-        whiteTextPaintShadow.setTextAlign(Paint.Align.CENTER);
-        whiteTextPaintShadow.setStyle(Paint.Style.FILL);
-        whiteTextPaintShadow.setShadowLayer(25, 0, 0, Color.WHITE);
+        pausePaint = new Paint();
+        pausePaint.setColor(Color.WHITE);
+        pausePaint.setTextSize(getResources().getDimension(R.dimen.text_size_medium));
+        pausePaint.setTextAlign(Paint.Align.CENTER);
+        pausePaint.setStyle(Paint.Style.FILL);
+        pausePaint.setShadowLayer(25, 0, 0, Color.WHITE);
 
-        
-        redTextPaint = new Paint();
-        redTextPaint.setColor(Color.RED);
-        redTextPaint.setTextSize(getResources().getDimension(R.dimen.text_size_big));
-        redTextPaint.setTextAlign(Paint.Align.CENTER);
-        redTextPaint.setStyle(Paint.Style.FILL);
+
 
         //alpha paint
         alphaPaint = new Paint();
-        redTextPaint.setColor(Color.BLACK);
-        alphaPaint.setAlpha(150);
-        redTextPaint.setStyle(Paint.Style.FILL);
+        scoreHighlightPaint.setColor(Color.BLACK);
+        alphaPaint.setAlpha(160);
+        scoreHighlightPaint.setStyle(Paint.Style.FILL);
 
         //collect paints for stripes
         stripePaints.put(0,redPaint);
@@ -227,7 +265,10 @@ public class GameActivity_Layout extends SurfaceView implements Runnable {
             }
         }
         thread = null;
-        paused = true;
+        if (gameState == GameState.IN_GAME){
+                gameState = GameState.PAUSED;
+        }
+
     }
 
 
@@ -269,7 +310,7 @@ public class GameActivity_Layout extends SurfaceView implements Runnable {
         delta_t = 0;
 
 
-        //TODO fix problem with delta t
+        //TODO fix problem with animation/ find smoother animation method...
         while(canDraw){
 
             update();
@@ -298,8 +339,8 @@ public class GameActivity_Layout extends SurfaceView implements Runnable {
 
     private void update() {
 
-        //Do not change anything if paused!
-        if (paused) {
+        //Do not change anything if not in game!
+        if (gameState != GameState.IN_GAME) {
             return;
         }
 
@@ -360,8 +401,7 @@ public class GameActivity_Layout extends SurfaceView implements Runnable {
             //collision detected:
             if (currentStripe.left <= firstContact && currentStripe.left >= lastContact
                     && square_color != stripe_color){
-                paused = true;
-                gameOver = true;
+                gameState = GameState.GAME_OVER;
             }
 
             //no collision found:
@@ -375,11 +415,10 @@ public class GameActivity_Layout extends SurfaceView implements Runnable {
     }
 
     public void startNewGame() {
+        gameState = GameState.IN_GAME;
         rotationAngle = 0;
         futureRotations = new PriorityQueue<>();
-        paused = false;
         alreadyWaited = false;
-        gameOver = false;
         x = 0;
         score = 0;
         stripes = new LinkedList<>();
@@ -414,9 +453,82 @@ public class GameActivity_Layout extends SurfaceView implements Runnable {
     private void draw() {
         canvas = surfaceHolder.lockCanvas();
 
+        //choose the layout of the app depending on the state the app is currently in
+        switch(gameState){
+            case IN_GAME:
+                drawGameView();
+                break;
+            case IN_MENU:
+                drawMenuView();
+                break;
+
+            case PAUSED:
+                drawPauseMenuView();
+                break;
+            case GAME_OVER:
+                drawGameOverView();
+                break;
+
+        }
+
+        surfaceHolder.unlockCanvasAndPost(canvas);
+    }
+
+
+    private void drawGameView() {
 
         //background
         canvas.drawBitmap(background,0,0, null);
+
+
+        //stripes
+        drawStripes();
+
+        //TODO find out why it spawns at (0|0) in the beginning
+        //square (rotated with the given matrix)
+        canvas.drawBitmap(square, matrix, null);
+
+
+        //score (highlighted if level up is achieved)
+        if (level_up){
+            level_up = false;
+            canvas.drawText(String.valueOf(score), score_x, score_y, scoreHighlightPaint);
+        }
+        else{
+            canvas.drawText(String.valueOf(score), score_x, score_y, scoreStandardPaint);
+        }
+
+
+        //pause button
+        canvas.drawBitmap(pause_button, pause_x, pause_y,null);
+    }
+
+
+    private void drawMenuView() {
+        //background
+        canvas.drawBitmap(background,0,0, null);
+
+
+        //Square.io text
+        canvas.drawText("SQUARE.IO", gameOver_x, gameOver_y, whiteTextPaintBig);
+
+        int PULSATING_PERIOD = 1300;
+        canvas.drawText("(Tap to start)", gameOver_x, tapRestart_y, getPulsatingPaint(PULSATING_PERIOD));
+
+
+        //leaderboard
+        canvas.drawBitmap(leaderboard_button, leaderboard_x, leaderboard_y, null);
+
+        //settings
+        canvas.drawBitmap(settings_button, pause_x, pause_y, null);
+    }
+
+
+    private void drawPauseMenuView() {
+
+        //background
+        canvas.drawBitmap(background,0,0, null);
+
 
         //stripes
         drawStripes();
@@ -426,39 +538,63 @@ public class GameActivity_Layout extends SurfaceView implements Runnable {
         canvas.drawBitmap(square, matrix, null);
 
 
+        //veil to make the game view less visible
+        canvas.drawRect(backgroundVeil, alphaPaint);
+        canvas.drawText("Pause", gameOver_x, gameOver_y, pausePaint);
+        int PULSATING_PERIOD = 1300;
+        canvas.drawText("(Tap to resume)", gameOver_x, tapRestart_y, getPulsatingPaint(PULSATING_PERIOD));
+
+
+        //score
+        canvas.drawText(String.valueOf(score), score_x, score_y, scoreStandardPaint);
+
+
+        //home button (return to menu)
+        canvas.drawBitmap(home_button, home_x, home_y, null);
+
+        //settings
+        canvas.drawBitmap(settings_button, pause_x, pause_y, null);
+    }
+
+
+    private void drawGameOverView() {
+        //background
+        canvas.drawBitmap(background,0,0, null);
+
+        //stripes
+        drawStripes();
+
+        //square (rotated with the given matrix)
+        canvas.drawBitmap(square, matrix, null);
+
+
+        //veils the game to make the text more visible
+        canvas.drawRect(backgroundVeil, alphaPaint);
+
+
         //score (highlighted if level up is achieved)
-        if (level_up){
-            level_up = false;
-            canvas.drawText(String.valueOf(score), score_x, score_y, redTextPaint);
+        //TODO replace with: if(newHighsore)
+        if (false){
+            canvas.drawText(String.valueOf(score), score_x, score_y, scoreHighlightPaint);
         }
         else{
-            canvas.drawText(String.valueOf(score), score_x, score_y, whiteTextPaint);
+            canvas.drawText(String.valueOf(score), score_x, score_y, scoreStandardPaint);
         }
 
 
-        if (paused && !gameOver){
-            canvas.drawRect(backgroundVeil, alphaPaint);
-            canvas.drawText("Pause", gameOver_x, gameOver_y, whiteTextPaintShadow);
-            int PULSATING_PERIOD = 1500;
-            canvas.drawText("(Press play to continue)", gameOver_x, tapRestart_y, getPulsatingPaint(PULSATING_PERIOD));
-        }
+        //game over text
+        canvas.drawText("Game over!", gameOver_x, gameOver_y, whiteTextPaintBig);
+        int PULSATING_PERIOD = 1300;
+        canvas.drawText("(Tap to restart)", gameOver_x, tapRestart_y, getPulsatingPaint(PULSATING_PERIOD));
 
+        //home button (return to menu)
+        canvas.drawBitmap(home_button, home_x, home_y, null);
 
-        //pause/play
-        canvas.drawBitmap(paused ? play_button : pause_button, pause_x, pause_y,null);
-
-
-        if(gameOver){
-            //veils the game to make the text more visible
-            canvas.drawRect(backgroundVeil, alphaPaint);
-
-            canvas.drawText("Game over!", gameOver_x, gameOver_y, whiteTextPaintBig);
-            int PULSATING_PERIOD = 1300;
-            canvas.drawText("(Tap to restart)", gameOver_x, tapRestart_y, getPulsatingPaint(PULSATING_PERIOD));
-        }
-
-        surfaceHolder.unlockCanvasAndPost(canvas);
+        //settings
+        canvas.drawBitmap(settings_button, pause_x, pause_y, null);
     }
+
+
 
     private Paint getPulsatingPaint(int pulsatingPeriod) {
         Paint paint = new Paint();
@@ -508,7 +644,7 @@ public class GameActivity_Layout extends SurfaceView implements Runnable {
         }
 
         //Wait after next step. This is the first one where the stripe and the square collide.
-        if(gameOver && !alreadyWaited){
+        if(gameState == GameState.GAME_OVER && !alreadyWaited){
            waitAfterNext = true;
         }
 
@@ -592,18 +728,13 @@ public class GameActivity_Layout extends SurfaceView implements Runnable {
         return futureRotations;
     }
 
-    public boolean isPaused() {
-        return paused;
-    }
-
-    public boolean isGameOver() {
-        return gameOver;
-    }
-
     public boolean isWaiting() {
         return waiting;
     }
 
+    public GameState getGameState() {
+        return gameState;
+    }
 
     /*-------------------------------------------------------------------------------*/
 
@@ -614,7 +745,8 @@ public class GameActivity_Layout extends SurfaceView implements Runnable {
         this.futureRotations = futureRotations;
     }
 
-    public void setPaused(boolean paused) {
-        this.paused = paused;
+
+    public void setGameState(GameState gameState) {
+        this.gameState = gameState;
     }
 }

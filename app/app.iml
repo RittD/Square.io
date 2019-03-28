@@ -197,5 +197,6 @@
     <orderEntry type="library" name="Gradle: com.google.android.gms:play-services-tasks:16.0.1@aar" level="project" />
     <orderEntry type="module" module-name="easyandroidanimationslibrary-v0.5" />
     <orderEntry type="module" module-name="easyandroidanimationslibrary-v0.5" />
+    <orderEntry type="module" module-name="easyandroidanimationslibrary-v0.5" />
   </component>
 </module>

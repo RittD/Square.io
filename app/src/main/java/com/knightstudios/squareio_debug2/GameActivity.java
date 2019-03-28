@@ -4,31 +4,28 @@ package com.knightstudios.squareio_debug2;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.util.DisplayMetrics;
 import android.view.MotionEvent;
-import android.view.View;
 import android.view.WindowManager;
-import android.widget.Button;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
-import android.widget.TextView;
 import android.widget.Toast;
 
-import com.bumptech.glide.Glide;
 import com.google.android.gms.auth.api.Auth;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.auth.api.signin.GoogleSignInResult;
 import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.SignInButton;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.common.api.ResultCallback;
-import com.google.android.gms.common.api.Status;
 
 import java.util.Queue;
+
+import static com.knightstudios.squareio_debug2.GameActivity_Layout.leaderboard_x;
+import static com.knightstudios.squareio_debug2.GameActivity_Layout.leaderboard_y;
+import static com.knightstudios.squareio_debug2.GameActivity_Layout.home_x;
+import static com.knightstudios.squareio_debug2.GameActivity_Layout.home_y;
+import static com.knightstudios.squareio_debug2.GameActivity_Layout.pause_x;
+import static com.knightstudios.squareio_debug2.GameActivity_Layout.pause_y;
 
 
 /**
@@ -40,27 +37,10 @@ public class GameActivity extends AppCompatActivity implements GoogleApiClient.O
     GameActivity_Layout gameActivityLayoutView;
     static DisplayMetrics displayMetrics;
 
-//    static final int RC_SIGN_IN = 9001;
-//    GoogleApiClient signInClient;
-
-//    private LinearLayout prof_section;
-//    private SignInButton signIn;
-//    private TextView name,email;
 //    private ImageView prof_pic;
     private GoogleApiClient client;
     private static final int REQ_CODE = 9001;
 
-//    @Override
-//    public void onClick(View v) {
-//        switch (v.getId()){
-//            case R.id.btn_login:
-//                signIn();
-//                break;
-//            case R.id.btn_logout:
-//                signOut();
-//                break;
-//        }
-//    }
 
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
@@ -80,21 +60,8 @@ public class GameActivity extends AppCompatActivity implements GoogleApiClient.O
 
         //set layout view (that continuously draws the screen)
         gameActivityLayoutView = new GameActivity_Layout(this);
-        //TODO redirect to startscreen instead of pause
-        new Handler().postDelayed(()->gameActivityLayoutView.setPaused(true),50);
         setContentView(gameActivityLayoutView);
 
-//        setContentView(R.layout.activity_game_over);
-
-//        prof_section = findViewById(R.id.prof_section);
-//        Button signOut = findViewById(R.id.btn_logout);
-//        signIn = findViewById(R.id.btn_login);
-//        name = findViewById(R.id.name);
-//        email = findViewById(R.id.email);
-//        prof_pic = findViewById(R.id.prof_pic);
-//        signIn.setOnClickListener(this);
-//        signOut.setOnClickListener(this);
-//        prof_section.setVisibility(View.GONE);
         GoogleSignInOptions signInOptions = new GoogleSignInOptions
                 .Builder(GoogleSignInOptions.DEFAULT_SIGN_IN).requestEmail().build();
         client = new GoogleApiClient.Builder(this)
@@ -102,9 +69,6 @@ public class GameActivity extends AppCompatActivity implements GoogleApiClient.O
                 .addApi(Auth.GOOGLE_SIGN_IN_API, signInOptions).build();
 
         signIn();
-
-
-//        new Handler().postDelayed(()->setContentView(gameActivityLayoutView),20000);
 
     }
 
@@ -127,7 +91,7 @@ public class GameActivity extends AppCompatActivity implements GoogleApiClient.O
             GoogleSignInAccount account = result.getSignInAccount();
             if (account != null){
                 String name2 = account.getDisplayName();
-                //TODO replace with welcome dialog:
+                //TODO remove or replace this?
                 Toast.makeText(getApplicationContext(),"Welcome "+ (name2 == null ? "Guest" : name2.split("\\s")[0]+"!"), Toast.LENGTH_SHORT).show();
 //                String email2 = account.getEmail();
 //                String img_url = account.getPhotoUrl() != null ? account.getPhotoUrl().toString() : "";
@@ -144,6 +108,7 @@ public class GameActivity extends AppCompatActivity implements GoogleApiClient.O
 
     private void updateUI(boolean isLogIn) {
         if (isLogIn){
+            //TODO show daily/all time highscore?
 //            prof_section.setVisibility(View.VISIBLE);
 //            signIn.setVisibility(View.GONE);
         }
@@ -177,20 +142,27 @@ public class GameActivity extends AppCompatActivity implements GoogleApiClient.O
         if(event.getAction() == MotionEvent.ACTION_DOWN) {
             float x = event.getX();
             float y = event.getY();
-            float margin_pause = getResources().getDimension(R.dimen.margin_pause);
-            float pause_size = getResources().getDimension(R.dimen.size_pause);
-            if (gameActivityLayoutView.isGameOver()) {
-                if (!gameActivityLayoutView.isWaiting()) {
-                    gameActivityLayoutView.startNewGame();
-                }
-            }
-            else {
-                boolean clickedOnPause = x >= displayMetrics.widthPixels - (pause_size + margin_pause) &&
-                        y >= margin_pause && y <= margin_pause + pause_size;
-                if (clickedOnPause) {
-                    gameActivityLayoutView.setPaused(!gameActivityLayoutView.isPaused());
+            int icon_size = (int) getResources().getDimension(R.dimen.size_icon);
+            boolean clickedOnHome = x >= home_x && x <= home_x + icon_size &&
+                                    y >= home_y && y <= home_y + icon_size;
+            boolean clickedOnPauseOrSettings =  x >= pause_x && x <= pause_x + icon_size &&
+                                      y >= pause_y && y <= pause_y + icon_size;
+            boolean clickedOnHighscore = x >= leaderboard_x && x <= leaderboard_x + icon_size &&
+                                         y >= leaderboard_y && y <= leaderboard_y + icon_size;
+//            boolean clickedOnAchievements = x >= achievements_x && x <= achievements_x + icon_size &&
+//                    y >= achievements_y && y <= achievements_y + icon_size;
 
-                } else {
+
+            //Depending on the current view the reaction to touch event should vary.
+            switch(gameActivityLayoutView.getGameState()){
+
+                case IN_GAME:
+                    //pause
+                    if (clickedOnPauseOrSettings) {
+                        gameActivityLayoutView.setGameState(GameState.PAUSED);
+                        break;
+                    }
+
                     boolean clickedInRightHalf = event.getX() >= displayMetrics.widthPixels / 2;
 
                     //futureRotations are the rotations that will be executed after the currently executed rotation
@@ -198,8 +170,8 @@ public class GameActivity extends AppCompatActivity implements GoogleApiClient.O
 
                     int MAX_FUTURE_ROTATIONS = 5;
 
-                    //only allow a specific maximum amount of future rotations and do not accept clicks while paused
-                    if (futureRotations.size() < MAX_FUTURE_ROTATIONS && !gameActivityLayoutView.isPaused()) {
+                    //only allow a specific maximum amount of future rotations
+                    if (futureRotations.size() < MAX_FUTURE_ROTATIONS) {
                         if (clickedInRightHalf) {
                             //rotate square right by 90 degrees
                             futureRotations.add(90);
@@ -209,7 +181,61 @@ public class GameActivity extends AppCompatActivity implements GoogleApiClient.O
                         }
                     }
                     gameActivityLayoutView.setFutureRotations(futureRotations);
-                }
+
+                    break;
+
+
+                case IN_MENU:
+                    if (clickedOnHighscore){
+                        //TODO implement and open leaderboard
+                        break;
+                    }
+                    //TODO replace with clickedOnAchievements
+                    if(false){
+                        //TODO implement and open achievements
+                        break;
+                    }
+                    //settings
+                    if (clickedOnPauseOrSettings){
+                        //TODO implement and open settings
+                        break;
+                    }
+
+                    gameActivityLayoutView.startNewGame();
+
+
+                    break;
+
+
+                case PAUSED:
+                    if (clickedOnHome) {
+                        gameActivityLayoutView.setGameState(GameState.IN_MENU);
+                        break;
+                    }
+                    //settings
+                    if (clickedOnPauseOrSettings) {
+                        //TODO implement and open settings
+                        break;
+                    }
+                    gameActivityLayoutView.setGameState(GameState.IN_GAME);
+                    break;
+
+
+                case GAME_OVER:
+                    if (clickedOnHome) {
+                        gameActivityLayoutView.setGameState(GameState.IN_MENU);
+                        break;
+                    }
+                    //settings
+                    if (clickedOnPauseOrSettings) {
+                        //TODO implement and open settings
+                        break;
+                    }
+
+                    gameActivityLayoutView.startNewGame();
+                    gameActivityLayoutView.setGameState(GameState.IN_GAME);
+                    break;
+
             }
         }
         return super.onTouchEvent(event);
